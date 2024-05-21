@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuron Structure Search</title>
+</head>
+<body>
+    <h1>Neuron Structure Search</h1>
+    <form id="searchForm">
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search" placeholder="Enter part of neuron...">
+        <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById("searchForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get the search query from the input field
+            var searchQuery = document.getElementById("search").value.trim();
+
+            // Send an AJAX request to the Flask backend
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://127.0.0.1:5000/api/data?search=" + encodeURIComponent(searchQuery), true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        // Parse the JSON response
+                        var response = JSON.parse(xhr.responseText);
+
+                        // Display the results in the 'results' div
+                        displayResults(response);
+                    } else {
+                        // Show error message if request fails
+                        document.getElementById("results").textContent = "Error: Unable to fetch data";
+                    }
+                }
+            };
+            xhr.send();
+        });
+
+        function displayResults(data) {
+            var resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = ""; // Clear previous results
+
+            // Check if there are any results
+            if (Object.keys(data).length === 0) {
+                resultsDiv.textContent = "No results found";
+                return;
+            }
+
+            // Iterate over the data and create HTML elements to display it
+            for (var part in data) {
+                var scientists = data[part];
+                var partHeading = document.createElement("h2");
+                partHeading.textContent = part;
+                resultsDiv.appendChild(partHeading);
+
+                var scientistsList = document.createElement("ul");
+                scientists.forEach(function(scientist) {
+                    var scientistItem = document.createElement("li");
+                    scientistItem.textContent = scientist.scientist + " - " + scientist.contribution;
+                    scientistsList.appendChild(scientistItem);
+                });
+                resultsDiv.appendChild(scientistsList);
+            }
+        }
+    </script>
+</body>
+</html>
